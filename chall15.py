@@ -25,6 +25,9 @@ def pkcs_check( plaintext ):
 
 
 if __name__ == "__main__":
+	"""
+		Simple tests from cryptopals challenge
+	"""
 
 	valid = "ICE ICE BABY\x04\x04\x04\x04"
 	invalid1 = "ICE ICE BABY\x05\x05\x05\x05"
