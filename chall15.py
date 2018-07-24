@@ -4,7 +4,7 @@ def pkcs_check( plaintext ):
 		Returns true when plaintext is padded correctly
 		Otherwise it throws an Exception
 
-		For not-existing objects functions returns True
+		For not-existing objects functions returns False
 	"""
 
 	if plaintext == None:
