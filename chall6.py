@@ -101,14 +101,6 @@ class RepeatedXOR:
 		binary2	= ''.join( format(ord(x),'b').zfill(8) for x in text2)
 
 		hamming_dist = 0
-
-		dist=0
-		i=0
-		while i < len(binary1) and i<len(binary2):
-			if binary1[i]!=binary2[i]:
-				dist+=1
-			i+=1
-		return dist
 		
 		for ind1, ind2 in zip(binary1, binary2):
 			if ind1 != ind2:
