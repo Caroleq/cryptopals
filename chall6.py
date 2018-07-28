@@ -8,13 +8,13 @@ from chall3 import break_xor_single_byte_by_freq
 
 class RepeatedXOR:
 	"""
-		class for breaking ciphertext encrypted repeating XOR key
+		class for breaking ciphertext encrypted with repeating XOR key
 	"""
 
 
 	def break_repeating_XOR_key( self, encrypted ):
 		"""
-			Full operation of breaking encryption of encrypted
+			Full operation of breaking encrypted ciphertext
 		"""
 
 		if encrypted == "" or type(encrypted) != str :
@@ -93,6 +93,8 @@ class RepeatedXOR:
 			computes hamming distance between text1 and text2,
 			where hamming distance is number of different bits between text1 and text2
 
+			https://en.wikipedia.org/wiki/Hamming_distance
+
 		"""
 
 		binary1	= ''.join( format(ord(x),'b').zfill(8) for x in text1)
@@ -111,7 +113,7 @@ class RepeatedXOR:
 
 if __name__ == "__main__":
 	"""
-	  breakes repeating xor from example
+	  breakes repeating xor text from the challenge site: https://cryptopals.com/static/challenge-data/6.txt
 	"""
 
 	test = RepeatedXOR();
