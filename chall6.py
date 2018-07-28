@@ -1,22 +1,20 @@
-from __future__ import division
 from binascii import hexlify, unhexlify
 from base64 import b64decode
 from operator import itemgetter
 from chall2 import xor_hex
-#from chall3 import frequency_table
 from chall3 import break_xor_single_byte_by_freq
 
 
 
 class RepeatedXOR:
 	"""
-		class for beaking encrypted with repeating XOR text
+		class for breaking ciphertext encrypted repeating XOR key
 	"""
 
 
 	def break_repeating_XOR_key( self, encrypted ):
 		"""
-			Full operation of breaking encryption of self.encrypted
+			Full operation of breaking encryption of encrypted
 		"""
 
 		if encrypted == "" or type(encrypted) != str :
@@ -48,7 +46,7 @@ class RepeatedXOR:
 
 	def __get_key_sizes(self, encrypted):
 		"""
-			Computes possible keysizes of xor key. We assum keysize is between 2 and 40
+			Computes possible keysizes of xor key. I assume keysize is between 2 and 40
 		"""
 
 		if encrypted == "" or type(encrypted) != str :
