@@ -1,109 +1,137 @@
 from __future__ import division
-import base64
+from binascii import hexlify, unhexlify
+from base64 import b64decode
 from operator import itemgetter
-
-frequency_table={'E':1, 'e':1,
-		 'T':12/13, 't':12/13,
-		 'A':11/13, 'a':11/13,
-		 'O':10/13, 'o':10/13,
-		 'I':9/13, 'i':9/13, 
-		 'N':8/13, 'n':8/13,
-		 ' ':7/13, 
-		 'S':6/13, 's':6/13,
-		 'H':5/13, 'h':5/13,
-		 'R':4/13, 'r':4/13,
-		 'D':3/13, 'd':3/13,
-		 'L':2/13, 'l':2/13,
-		 'U':1/13, 'u':1/13}
-
-def break_sigle_xor(to_break):
-	"""test for single xor"""	
-	max_score_letter='\x00'
-	max_score=0
-	for char in range(0,256):
-		score=0.0
-		for letter in to_break:
-			c=chr(ord(letter)^char)
-			if c in frequency_table.keys():
-				score+=frequency_table[c]
-		if score > max_score:
-			max_score_letter=chr(char)
-			max_score=score
-	return max_score_letter
+from chall2 import xor_hex
+#from chall3 import frequency_table
+from chall3 import break_xor_single_byte_by_freq
 
 
 
-def hamm_dist(str1,str2):
-	"""function to compute hamming distance of two strings"""
-	if len(str1)!=len(str2):
-		raise Exception
-	str1_b=''.join(format(ord(x),'b').zfill(8) for x in str1)
-	str2_b=''.join(format(ord(x),'b').zfill(8) for x in str2)
-	dist=0
-	i=0
-	while i < len(str1_b) and i<len(str2_b):
-		if str1_b[i]!=str2_b[i]:
-			dist+=1
-		i+=1
-	return dist
+class RepeatedXOR:
+	"""
+		class for beaking encrypted with repeating XOR text
+	"""
 
-def get_xor_len(data):
-	"""gets the probable xor length from hamming distance"""
-	dists=[]
-	for i in range(2,41):
-		av_dist=0
-		for j in range(0,12):
-			s1=data[j*i:j*i+i]
-			s2=data[j*i+i:j*i+2*i]
-			av_dist+=(hamm_dist(s1,s2))/i
-		dists.append([i,av_dist])
-	dists.sort(key=itemgetter(1))
-	return dists[:3]
 
-def transpose(t_blocks):
-	"""creates new blocks by first numbers of t_blocks"""
-	blocks=[]
-	length=len(t_blocks[0]) 
-	for i in range(length):
-		blocks.append("")
-	for block in t_blocks:
+	def break_repeating_XOR_key( self, encrypted ):
+		"""
+			Full operation of breaking encryption of self.encrypted
+		"""
+
+		if encrypted == "" or type(encrypted) != str :
+			raise Exception("Provide nonempty string")
+
+		sizes = self.__get_key_sizes(encrypted)
+
+		transposed = self.__transpose(encrypted, sizes[0][0])
+
+
+		xor_key = ''
+		for block in transposed:
+			hex_block = hexlify( bytes(block,'ASCII') )
+			xor_key += break_xor_single_byte_by_freq(hex_block)
+
+		hex_encrypted = hexlify( bytes(encrypted,'ASCII') )
+		hex_key = hexlify(  bytes(xor_key*int(len(encrypted)/sizes[0][0] +1), 'ASCII' ) )
+
+		if len(hex_key) > len(hex_encrypted):
+			hex_key = hex_key[:len(hex_encrypted)]
+
+		hex_text = xor_hex(hex_encrypted, hex_key)
+
+		return hex_text
+
+
+
+
+
+	def __get_key_sizes(self, encrypted):
+		"""
+			Computes possible keysizes of xor key. We assum keysize is between 2 and 40
+		"""
+
+		if encrypted == "" or type(encrypted) != str :
+			raise Exception("Provide nonempty string")
+
+
+		sizes = []	# list of tupes ( lenght, score )
+		for length in range(2,41):
+
+			blocks = [ encrypted[i*length:(i+1)*length] for i in range( int(len(encrypted)/length) )]
+
+			score = 0
+			for block1, block2 in zip(blocks[:12], blocks[1:13]):
+				score += self.hamming_distance(block1, block2)/length
+
+			sizes.append((length, score))
+
+
+		sizes.sort(key=itemgetter(1))
+		return sizes
+
+
+	def __transpose(self, encrypted, length):
+		"""
+			Multiple of i in range(0,length) will by in won block with the same multiples
+			i. e. i, i+length, i+2*lenght,... character in string will be placed in one block
+		"""
+
+		if encrypted == "" or type(encrypted) != str :
+			raise Exception("Provide nonempty string")
+
+		transposed = [ '' for i in range(length ) ]
+
+		for i in range(len(encrypted)):
+			transposed[i%length] += encrypted[i]
+
+		return transposed
+
+
+
+
+	def hamming_distance( self, text1, text2 ):
+		"""
+			computes hamming distance between text1 and text2,
+			where hamming distance is number of different bits between text1 and text2
+
+		"""
+
+		binary1	= ''.join( format(ord(x),'b').zfill(8) for x in text1)
+		binary2	= ''.join( format(ord(x),'b').zfill(8) for x in text2)
+
+		hamming_dist = 0
+
+		dist=0
 		i=0
-		if len(block)<length:
-			continue
-		while i<length:
-			blocks[i]+=block[i]
+		while i < len(binary1) and i<len(binary2):
+			if binary1[i]!=binary2[i]:
+				dist+=1
 			i+=1
-	return blocks
-
-def xor_op(text,key):
-	i=0
-	out=""
-	while i<len(text):
-		out+=chr(ord(text[i])^ord(key[i%len(key)]))
-		i+=1
-	return out
-
-def main():
-	data_f=open('6.txt')
-	data=data_f.read()
-	decr=base64.b64decode(data)
-	data_f.close()
-	items= get_xor_len(decr)
-	k_size=[items[i][0] for i in xrange(0, len(items),1)]
-	k_size=k_size[:1]
-	for key in k_size:
-		blocks=[decr[i:i+key] for i in xrange(0,len(decr),key)]
-		t_blocks=transpose(blocks)
-		passwd=""
-		for block in t_blocks:
-			passwd+=break_sigle_xor(block)
-			
-		text=xor_op(decr,passwd)
-		print text
-
+		return dist
 		
-if __name__=="__main__":
-	main()
+		for ind1, ind2 in zip(binary1, binary2):
+			if ind1 != ind2:
+				hamming_dist += 1
 
+		return hamming_dist
+
+
+
+
+if __name__ == "__main__":
+	"""
+	  breakes repeating xor from example
+	"""
+
+	test = RepeatedXOR();
+
+	assert test.hamming_distance( 'wokka wokka!!!','this is a test') == 37 
+
+	file_to_break = b64decode( open('6.txt').read() ).decode('utf-8')
+
+	hexlified_plaintext = test.break_repeating_XOR_key(file_to_break )
+
+	print( unhexlify( hexlified_plaintext).decode('utf-8') )
 
 
