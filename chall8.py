@@ -1,4 +1,4 @@
-from binascii import unhexlify, hexlify, b2a_hex
+from binascii import unhexlify
 
 class FoundECBException(Exception):
 	pass
@@ -19,6 +19,7 @@ def detect_AES_ECB( data_lines, block_size=16 ):
 		try:
 			for index1 in range(len(blocks)):
 				for index2 in range(index1+1, len(blocks)):
+
 					if blocks[index1] == blocks[index2]:
 						ECB_lines.append(line_index)
 						raise FoundECBException
