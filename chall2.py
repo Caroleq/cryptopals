@@ -1,6 +1,7 @@
 import binascii
 
 
+
 def xor_hex(buffer1, buffer2):
     """
       Function takes two hex-encoded buffers of equal length and produces their xor value
@@ -15,6 +16,21 @@ def xor_hex(buffer1, buffer2):
     xor = ''.join(xor_list)
   
     return str(binascii.hexlify( bytes(''.join(xor_list), 'utf-8')))[2:-1]
+
+
+
+def xor_bytes(buffer1, buffer2):
+    """
+        Function takes two byte-type objects of equal length and produces their xor value
+    """
+    if len(buffer1) != len(buffer2):
+        raise Exception("Strings should have equal length")
+
+    xor_result = [ val1^val2  for (val1, val2) in zip(buffer1, buffer2)]
+
+    return bytes(xor_result) 
+
+
 
 
 
