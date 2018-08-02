@@ -1,4 +1,9 @@
 
+
+class PaddingException(Exception):
+	pass
+
+
 def pkcs_check( plaintext ):
 	"""
 		Returns true when plaintext is padded correctly
@@ -7,21 +12,47 @@ def pkcs_check( plaintext ):
 		For not-existing objects functions returns False
 	"""
 
+
+	if type(plaintext) != str and type(plaintext) != bytes:
+		raise PaddingException("Invalid Type")
+
 	if plaintext == None:
 		return False
 
-	pad_ascii = ord(plaintext[-1])
+	if type(plaintext) == str:
+		pad_ascii = ord(plaintext[-1])
+	else:
+		pad_ascii = plaintext[-1]
 
 	if pad_ascii not in range(1,17):
-		raise Exception("Invalid Padding")
+		#print(pad_ascii)
+		raise PaddingException("Invalid Padding Range")
 
 	if len(plaintext) < pad_ascii :
-		raise Exception("Invalid Padding")
+		raise PaddingException("Invalid Padding Length")
 
-	if plaintext[-pad_ascii:] != chr(pad_ascii)*pad_ascii:
-		raise Exception("Invalid Padding")
+
+	if type(plaintext) == str:
+		if plaintext[-pad_ascii:] != chr(pad_ascii)*pad_ascii:
+			raise PaddingException("Invalid Padding")
+	else:
+		if plaintext[-pad_ascii:] != bytes( [pad_ascii]*pad_ascii) :
+			raise PaddingException("Invalid Padding")
 
 	return True
+
+def pkcs_unpad(plaintext):
+	"""
+		Removes trailing padding
+	"""
+
+	pkcs_check( plaintext )
+
+	if type(plaintext) == str:
+		return plaintext[:-ord(plaintext[-1])]
+	else:
+		return plaintext[:-plaintext[-1]]
+
 
 
 if __name__ == "__main__":
