@@ -5,7 +5,7 @@ class FoundECBException(Exception):
 
 def detect_AES_ECB( data_lines, block_size=16 ):
 	"""
-		detects indexes of line encrypted in ECB hint from the challenge: 'the same 16 byte plaintext block will always produce the same 16 byte ciphertext.''
+		detects indices of line encrypted in ECB hint from the challenge: 'the same 16 byte plaintext block will always produce the same 16 byte ciphertext.''
 
 		ECB_lines stores positions of detected strings
 	"""
@@ -28,6 +28,25 @@ def detect_AES_ECB( data_lines, block_size=16 ):
 			pass
 
 	return ECB_lines
+
+
+def check_AES_ECB_line( data, block_size=16 ):
+    """
+        checks if `data` could be encrypted in ECB mode 
+        i used it in chall11.py
+    """
+
+    ECB_lines = []
+
+    blocks = [ data[i:i+block_size] for i in range(0, len(data),block_size) ]
+
+    for index1 in range(len(blocks)):
+        for index2 in range(index1+1, len(blocks)):
+
+            if blocks[index1] == blocks[index2]:
+                return True
+
+    return False
 
 
 
