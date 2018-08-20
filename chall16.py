@@ -27,6 +27,16 @@ class CryptoGenerator:
 		key = [ randint(0,255) for i in range(16) ]
 		return bytes(key)
 
+	def __delete_delimeters(self, data ):
+		"""
+			removes ';' and '=' from `data`
+		"""
+
+		sanitized = bytes( [ byte_ for byte_ in data if (byte_ != ord(';') and byte_ != ord(':')) ] )
+		return sanitized
+
+
+
 
 
 	def encrypt_data(self, data):
@@ -34,7 +44,7 @@ class CryptoGenerator:
 			encrypts user data and returns ciphertext
 		"""
 
-	#	data = data.replace(';', '').replace('=', '')
+		data = self.__delete_delimeters(data)
 
 		to_encrypt = b"comment1=cooking%20MCs;userdata=" + data + b";comment2=%20like%20a%20pound%20of%20bacon"
 
